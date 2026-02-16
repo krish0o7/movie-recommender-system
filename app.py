@@ -4,8 +4,11 @@ import numpy as np
 import ast
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+ 
+ 
+st.markdown("### 🎥 Discover Movies Similar to Your Favorites")
+st.markdown("---")
 
-st.title("🎬 Movie Recommender System")
 
 @st.cache_data
 def load_data():
