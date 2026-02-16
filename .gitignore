@@ -1,0 +1,5 @@
+*.pkl
+*.exe
+data/
+__pycache__/
+venv/
