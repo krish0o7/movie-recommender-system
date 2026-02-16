@@ -47,12 +47,51 @@ def recommend(movie):
     distances = similarity[index]
     movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
 
-    recommended = []
+    recommended_movies = []
+    recommended_posters = []
+
     for i in movies_list:
-        recommended.append(movies.iloc[i[0]].title)
-    return recommended
+        movie_id = movies.iloc[i[0]].id
+        recommended_movies.append(movies.iloc[i[0]].title)
+        recommended_posters.append(fetch_poster(movie_id))
+
+    return recommended_movies, recommended_posters
+
 
 if st.button("Recommend"):
-    recommendations = recommend(selected_movie)
-    for movie in recommendations:
-        st.write(movie)
+    with st.spinner("Finding best movies for you..."):
+        names, posters = recommend(selected_movie)
+
+        col1, col2, col3, col4, col5 = st.columns(5)
+
+        with col1:
+            st.text(names[0])
+            st.image(posters[0])
+
+        with col2:
+            st.text(names[1])
+            st.image(posters[1])
+
+        with col3:
+            st.text(names[2])
+            st.image(posters[2])
+
+        with col4:
+            st.text(names[3])
+            st.image(posters[3])
+
+        with col5:
+            st.text(names[4])
+            st.image(posters[4])
+
+import requests
+
+def fetch_poster(movie_id):
+    api_key = "279736120d4205ac9b8d85989f2a6826"
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}"
+    data = requests.get(url).json()
+    poster_path = data.get('poster_path')
+    if poster_path:
+        return "https://image.tmdb.org/t/p/w500/" + poster_path
+    else:
+        return None
