@@ -2,19 +2,27 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import ast
+import requests
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
- 
- 
-st.markdown("### 🎥 Discover Movies Similar to Your Favorites")
+
+st.set_page_config(page_title="Movie Recommender", layout="wide")
+
+st.title("🎬 Movie Recommender System")
+st.markdown("### Discover Movies Similar to Your Favorites")
 st.markdown("---")
 
-
+# -------------------------------
+# Load Data
+# -------------------------------
 @st.cache_data
 def load_data():
     movies = pd.read_csv("tmdb_5000_movies.csv")
     return movies
 
+# -------------------------------
+# Preprocess Data
+# -------------------------------
 @st.cache_data
 def preprocess(movies):
     movies = movies[['id','title','overview','genres','keywords']]
@@ -39,12 +47,23 @@ def preprocess(movies):
 
     return movies, similarity
 
-movies = load_data()
-movies, similarity = preprocess(movies)
+# -------------------------------
+# Fetch Poster from TMDB
+# -------------------------------
+def fetch_poster(movie_id):
+    api_key = "279736120d4205ac9b8d85989f2a6826"   # 🔥 PUT YOUR TMDB API KEY HERE
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}"
+    data = requests.get(url).json()
+    poster_path = data.get('poster_path')
 
-movie_list = movies['title'].values
-selected_movie = st.selectbox("Select a movie", movie_list)
+    if poster_path:
+        return "https://image.tmdb.org/t/p/w500/" + poster_path
+    else:
+        return "https://via.placeholder.com/500x750?text=No+Image"
 
+# -------------------------------
+# Recommend Function
+# -------------------------------
 def recommend(movie):
     index = movies[movies['title'] == movie].index[0]
     distances = similarity[index]
@@ -60,6 +79,14 @@ def recommend(movie):
 
     return recommended_movies, recommended_posters
 
+# -------------------------------
+# Main App Logic
+# -------------------------------
+movies = load_data()
+movies, similarity = preprocess(movies)
+
+movie_list = movies['title'].values
+selected_movie = st.selectbox("Select a movie", movie_list)
 
 if st.button("Recommend"):
     with st.spinner("Finding best movies for you..."):
@@ -86,15 +113,3 @@ if st.button("Recommend"):
         with col5:
             st.text(names[4])
             st.image(posters[4])
-
-import requests
-
-def fetch_poster(movie_id):
-    api_key = "279736120d4205ac9b8d85989f2a6826"
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}"
-    data = requests.get(url).json()
-    poster_path = data.get('poster_path')
-    if poster_path:
-        return "https://image.tmdb.org/t/p/w500/" + poster_path
-    else:
-        return None
